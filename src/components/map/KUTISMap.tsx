@@ -4,10 +4,12 @@ import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import { junctions as baseJunctions, roads as baseRoads } from '../../data/trafficNetwork';
 import { useThemeStore } from '../../store/theme.store';
 import { useTrafficStore } from '../../store/traffic.store';
+import { useIncidentStore } from '../../store/incident.store';
 import { LinkPolyline } from './LinkPolyline';
 import { LayerControl } from './LayerControl';
 import { NodeMarker } from './NodeMarker';
 import { LinkTooltip } from './LinkTooltip';
+import { IncidentMarker } from './IncidentMarker';
 import { Badge } from '../ui/Badge';
 import { Panel } from '../ui/Panel';
 
@@ -54,8 +56,10 @@ export function KUTISMap({ hidden = false }: { hidden?: boolean }) {
   const layers = useTrafficStore((state) => state.layers);
   const setSelectedNodeId = useTrafficStore((state) => state.setSelectedNodeId);
   const setSelectedLinkId = useTrafficStore((state) => state.setSelectedLinkId);
+  const setSelectedIncidentId = useTrafficStore((state) => state.setSelectedIncidentId);
   const selectedLinkId = useTrafficStore((state) => state.selectedLinkId);
   const linkStates = useTrafficStore((state) => state.linkStates);
+  const incidents = useIncidentStore((state) => state.incidents);
 
   const ready = Object.keys(linkStates).length >= baseRoads.length;
 
@@ -82,6 +86,13 @@ export function KUTISMap({ hidden = false }: { hidden?: boolean }) {
           baseJunctions.map((node) => {
             return <NodeMarker key={node.id} node={node} onSelect={setSelectedNodeId} onHover={setHover} />;
           })}
+
+        {ready && layers.incidents &&
+          incidents
+            .filter((incident) => incident.status !== 'resolved')
+            .map((incident) => {
+              return <IncidentMarker key={incident.id} incident={incident} onSelect={setSelectedIncidentId} />;
+            })}
       </MapContainer>
 
       {!hidden && (
